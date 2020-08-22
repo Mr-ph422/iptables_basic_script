@@ -1,0 +1,32 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:         system
+# Required-Start:   $local_fs $network
+# Required-Stop:    $local_fs $network
+# Default-Start:    2 3 4 5
+# Default-Stop:     0 1 6
+# Description:      startscript
+### END INIT INFO
+
+### Firewall
+# Reset Firewall rules
+iptables -P INPUT ACCEPT
+iptables -P OUTPUT ACCEPT
+iptables -P FORWARD ACCEPT
+iptables -F
+
+# INPUT
+iptables -A INPUT -p TCP --dport 22 -m conntrack --ctstate NEW,ESTABLISHED,RELATED -j ACCEPT
+iptables -A INPUT -p UDP --sport 53 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A INPUT -p UDP --sport 123 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A INPUT -p TCP --sport 80 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A INPUT -p TCP --sport 443 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -P INPUT DROP
+
+# OUTPUT
+iptables -A OUTPUT -p TCP --sport 22 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A OUTPUT -p UDP --dport 53 -m conntrack --ctstate NEW,ESTABLISHED,RELATED -j ACCEPT
+iptables -A OUTPUT -p UDP --dport 123 -m conntrack --ctstate NEW,ESTABLISHED,RELATED -j ACCEPT
+iptables -A OUTPUT -p TCP --dport 80 -m conntrack --ctstate NEW,ESTABLISHED,RELATED -j ACCEPT
+iptables -A OUTPUT -p TCP --dport 443 -m conntrack --ctstate NEW,ESTABLISHED,RELATED -j ACCEPT
+iptables -P OUTPUT DROP
