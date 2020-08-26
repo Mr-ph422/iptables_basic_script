@@ -8,7 +8,10 @@
 # Description:      startscript
 ### END INIT INFO
 
-### Firewall
+#########################################
+Firewall
+#########################################
+
 # Reset Firewall rules
 iptables -P INPUT ACCEPT
 iptables -P OUTPUT ACCEPT
@@ -30,3 +33,33 @@ iptables -A OUTPUT -p UDP --dport 123 -m conntrack --ctstate NEW,ESTABLISHED,REL
 iptables -A OUTPUT -p TCP --dport 80 -m conntrack --ctstate NEW,ESTABLISHED,RELATED -j ACCEPT
 iptables -A OUTPUT -p TCP --dport 443 -m conntrack --ctstate NEW,ESTABLISHED,RELATED -j ACCEPT
 iptables -P OUTPUT DROP
+
+#########################################
+Creating trusted self-signed certificate
+#########################################
+# generating CA private key
+openssl genrsa -out server_rootCA.key 4096
+
+# generating CA certificate
+openssl req -x509 -new -nodes -key server_rootCA.key -sha256 -days 3650 -out server_rootCA.pem
+
+# writing v3.ext file
+touch v3.ext
+echo "authorityKeyIdentifier=keyid,issuer" >> v3.ext
+echo "basicConstraints=CA:FALSE" >> v3.ext
+echo "keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment" >> v3.ext
+echo "subjectAltName = @alt_names" >> v3.ext
+echo "" >> v3.ext
+echo "[alt_names]" >> v3.ext
+echo "IP.1=X.X.X.X" v3.ext # Enter here IP server
+
+# generating server private key & server csr
+openssl req -new -sha256 -nodes -out server.csr -newkey rsa:4096 -keyout server.key
+
+# generating server certificate
+openssl x509 -req -in server.csr -CA server_rootCA.pem -CAkey server_rootCA.key -CAcreateserial -out server.crt -days 3650 -sha256 -extfile v3.ext
+
+# for import & successful use in firefox, set the following about:config attributes:
+# network.stricttransportsecurity.preloadlist - false
+# security.enterprise_roots.enabled - true
+# last but not least import the 'server_rootCA.pem' into firefox
