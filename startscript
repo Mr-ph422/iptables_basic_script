@@ -8,9 +8,9 @@
 # Description:      startscript
 ### END INIT INFO
 
-#########################################
-Firewall
-#########################################
+##########################################
+# Firewall
+##########################################
 
 # Reset Firewall rules
 iptables -P INPUT ACCEPT
@@ -34,9 +34,9 @@ iptables -A OUTPUT -p TCP --dport 80 -m conntrack --ctstate NEW,ESTABLISHED,RELA
 iptables -A OUTPUT -p TCP --dport 443 -m conntrack --ctstate NEW,ESTABLISHED,RELATED -j ACCEPT
 iptables -P OUTPUT DROP
 
-#########################################
-Creating trusted self-signed certificate
-#########################################
+##########################################
+# Creating trusted self-signed certificate
+##########################################
 # generating CA private key
 openssl genrsa -out server_rootCA.key 4096
 
