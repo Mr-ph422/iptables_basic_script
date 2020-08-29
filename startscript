@@ -9,6 +9,16 @@
 ### END INIT INFO
 
 ##########################################
+# READ ME AT FIRST
+##########################################
+# To run the script on boot
+# enable local.d:
+#   rc-update add local default
+# write a script and place it in /etc/local.d
+# myscript.start will be executed on system boot
+# myscript.stop will be executed on system shutdown/reboot
+
+##########################################
 # Firewall
 ##########################################
 
@@ -33,6 +43,8 @@ iptables -A OUTPUT -p UDP --dport 123 -m conntrack --ctstate NEW,ESTABLISHED,REL
 iptables -A OUTPUT -p TCP --dport 80 -m conntrack --ctstate NEW,ESTABLISHED,RELATED -j ACCEPT
 iptables -A OUTPUT -p TCP --dport 443 -m conntrack --ctstate NEW,ESTABLISHED,RELATED -j ACCEPT
 iptables -P OUTPUT DROP
+
+# FORWARD
 
 ##########################################
 # Creating trusted self-signed certificate
@@ -63,3 +75,17 @@ openssl x509 -req -in server.csr -CA server_rootCA.pem -CAkey server_rootCA.key 
 # network.stricttransportsecurity.preloadlist - false
 # security.enterprise_roots.enabled - true
 # last but not least import the 'server_rootCA.pem' into firefox
+
+##########################################
+# Setting up Wireguard - Server
+##########################################
+#[Interface]
+#PrivateKey=<priv_key> # private Key from server. To generate private- and public Key: wg genkey | tee privatekey | wg pubkey > publickey
+#ListenPort=65000
+#Address=10.0.10.0/24
+#PostUp=iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE # For eth0 you can set any other interface you want
+#PostDown=iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE # For eth0 you can set any other interface you want
+
+#[Peer]
+#PublicKey=<pub_key> # public key from client who want to connect
+#AllowedIPs=10.0.10.1/32 # allow the client with the given IP
